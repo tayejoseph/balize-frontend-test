@@ -1,6 +1,6 @@
 # Frontend Coding Interview Test
 
-We recommend (although not required) to use the following languages, libraries, components: **TypeScript**, **React Query**, **Tailwind**, **shadcnUI**, and **Next.js Image component**.
+We recommend (although not required) to use the following languages, libraries, components: **TypeScript**, **React Query** or **RSC**, **Tailwind**, **shadcnUI**, **Next.js Image component**, and **zod** (for API output validation).
 
 ## How to use
 
@@ -67,10 +67,14 @@ npm run dev
      }
      ```
    - Add two new columns to the data table:
-     - **Image (Sprite):** Fetch and display each Pokémon's image (sprite).
+     - **Image:** Fetch and display each Pokémon's image (sprite).
      - **Types:** Fetch and display each Pokémon's types.
 
 4. **Pagination or Infinite Scroll:**
    - Implement either pagination or infinite scrolling to allow fetching and displaying the next set of Pokémon using the `next` property from the API response.
    - If pagination is chosen, provide controls to navigate between pages.
    - If infinite scrolling is chosen, automatically fetch and display the next set of Pokémon as the user scrolls down.
+5. **Skeleton Loading State:**
+   - Render a skeleton data table while the API data is being fetched.
+   - Style the skeleton table to match the design of the final data table (e.g. using the same colors, column widths, etc.).
+   - The table must cleary indicate that the data is being fetched (e.g. with animated skeleton elements).
