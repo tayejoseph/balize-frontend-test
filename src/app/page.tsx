@@ -27,23 +27,26 @@ type PokemonList = {
   results: Pokemon[];
 };
 
+const fetchPokemons = async (pageParam: string): Promise<PokemonList> => {
+  const { data } = await axios.get<PokemonList>(pageParam);
+  return data;
+};
+
 const PokemonTable: React.FC = () => {
   const [search, setSearch] = useState<string>("");
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isError } =
     useInfiniteQuery<PokemonList, Error>({
       queryKey: ["pokemonList"],
-      queryFn: async ({ pageParam = "https://pokeapi.co/api/v2/pokemon" }) => {
-        const { data } = await axios.get<PokemonList>(pageParam);
-        return data;
-      },
-      getNextPageParam: (lastPage) => lastPage.next || null,
+      queryFn: () => fetchPokemons("https://pokeapi.co/api/v2/pokemon"),
+      getNextPageParam: (lastPage) => lastPage.next ?? null,
+      initialPageParam: undefined,
       staleTime: 5 * 60 * 1000, // Cache data for 5 minutes
     });
 
   const fetchMoreData = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+      void fetchNextPage();
     }
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
