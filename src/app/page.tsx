@@ -93,7 +93,7 @@ const PokemonTable: React.FC = () => {
       </div>
 
       <div className="pt-16">
-        {isFetchingNextPage && !filteredResults?.length ? (
+        {(isFetchingNextPage && !filteredResults?.length) || !data ? (
           <div className="flex flex-col items-center">
             <SkeletonLoader rows={3} />
           </div>
