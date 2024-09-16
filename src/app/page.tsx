@@ -13,7 +13,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ScrollToTopButton, SkeletonLoader, PokemonRow } from "@/components";
+import { ScrollToTopButton, PokemonRow } from "@/components";
 
 type Pokemon = {
   name: string;
@@ -32,17 +32,56 @@ const fetchPokemons = async (pageParam: string): Promise<PokemonList> => {
   return data;
 };
 
+const TableSkeletonLoader: React.FC<{ rows: number }> = ({ rows }) => {
+  return (
+    <Table className="min-w-full">
+      <TableHeader>
+        <TableRow>
+          <TableHead>#</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead>Image</TableHead>
+          <TableHead>Types</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {Array.from({ length: rows }, (_, index) => (
+          <TableRow key={index}>
+            <TableCell>
+              <div className="h-8 w-6 animate-pulse rounded bg-gray-300"></div>
+            </TableCell>
+            <TableCell>
+              <div className="h-8 w-24 animate-pulse rounded bg-gray-300"></div>
+            </TableCell>
+            <TableCell>
+              <div className="h-8 w-16 animate-pulse rounded bg-gray-300"></div>
+            </TableCell>
+            <TableCell>
+              <div className="h-8 w-32 animate-pulse rounded bg-gray-300"></div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
+
 const PokemonTable: React.FC = () => {
   const [search, setSearch] = useState<string>("");
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isError } =
-    useInfiniteQuery<PokemonList, Error>({
-      queryKey: ["pokemonList"],
-      queryFn: () => fetchPokemons("https://pokeapi.co/api/v2/pokemon"),
-      getNextPageParam: (lastPage) => lastPage.next ?? null,
-      initialPageParam: undefined,
-      staleTime: 5 * 60 * 1000, // Cache data for 5 minutes
-    });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isError,
+    isLoading,
+  } = useInfiniteQuery<PokemonList, Error>({
+    queryKey: ["pokemonList"],
+    queryFn: () => fetchPokemons("https://pokeapi.co/api/v2/pokemon"),
+    getNextPageParam: (lastPage) => lastPage.next ?? null,
+    initialPageParam: undefined,
+    staleTime: 5 * 60 * 1000, // Cache data for 5 minutes
+  });
 
   const fetchMoreData = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -79,7 +118,7 @@ const PokemonTable: React.FC = () => {
       <div className="fixed left-0 right-0 top-0 z-10 bg-white p-4 shadow-md">
         <div className="flex items-center">
           <Input
-            placeholder="Search Pokémon..."
+            placeholder="Search by Pokémon name"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="mr-2 flex-grow"
@@ -93,9 +132,9 @@ const PokemonTable: React.FC = () => {
       </div>
 
       <div className="pt-16">
-        {(isFetchingNextPage && !filteredResults?.length) || !data ? (
-          <div className="flex flex-col items-center">
-            <SkeletonLoader rows={3} />
+        {isLoading ? (
+          <div className="flex justify-center py-10">
+            <TableSkeletonLoader rows={5} />
           </div>
         ) : isError ? (
           <div className="py-10">
@@ -126,7 +165,7 @@ const PokemonTable: React.FC = () => {
             </Table>
             {isFetchingNextPage && (
               <div className="flex justify-center py-4">
-                <SkeletonLoader rows={1} />
+                <TableSkeletonLoader rows={1} />
               </div>
             )}
           </div>
