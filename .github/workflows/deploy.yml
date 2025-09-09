@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-files
-          path: .next/
+          path: out/
           retention-days: 1
 
   deploy:
@@ -59,7 +59,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-files
-          path: .next/
+          path: out/
 
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
@@ -69,7 +69,7 @@ jobs:
         run: |
           netlify deploy \
             --prod \
-            --dir=.next \
+            --dir=out \
             --site=${{ secrets.NETLIFY_SITE_ID_PROD }} \
             --auth=${{ secrets.NETLIFY_AUTH_TOKEN }} \
             --message="Production deploy from main branch - ${{ github.sha }}"
@@ -78,7 +78,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         run: |
           netlify deploy \
-            --dir=.next \
+            --dir=out \
             --site=${{ secrets.NETLIFY_SITE_ID_PREVIEW }} \
             --auth=${{ secrets.NETLIFY_AUTH_TOKEN }} \
             --message="Preview deploy from develop branch - ${{ github.sha }}"
@@ -96,7 +96,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-files
-          path: .next/
+          path: out/
 
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
@@ -105,7 +105,7 @@ jobs:
         id: deploy-preview
         run: |
           DEPLOY_URL=$(netlify deploy \
-            --dir=.next \
+            --dir=out \
             --site=${{ secrets.NETLIFY_SITE_ID_PREVIEW }} \
             --auth=${{ secrets.NETLIFY_AUTH_TOKEN }} \
             --message="PR #${{ github.event.number }} - ${{ github.event.pull_request.title }}" \

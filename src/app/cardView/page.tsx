@@ -5,15 +5,15 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableHeader,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table";
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
-import { ScrollToTopButton, PokemonRow } from "@/components";
+import { ScrollToTopButton, PokemonCardRow } from "@/components";
 
 type Pokemon = {
   name: string;
@@ -27,45 +27,31 @@ type PokemonList = {
   results: Pokemon[];
 };
 
-const fetchPokemons = async ({
-  pageParam,
-}: {
-  pageParam: string;
+const fetchPokemons = async (props: {
+  pageParam?: "https://pokeapi.co/api/v2/pokemon" | undefined;
 }): Promise<PokemonList> => {
+  const { pageParam = "https://pokeapi.co/api/v2/pokemon" } = props;
   const { data } = await axios.get<PokemonList>(pageParam);
   return data;
 };
 
 const TableSkeletonLoader: React.FC<{ rows: number }> = ({ rows }) => {
   return (
-    <Table className="min-w-full">
-      <TableHeader>
-        <TableRow>
-          <TableHead>#</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Image</TableHead>
-          <TableHead>Types</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {Array.from({ length: rows }, (_, index) => (
-          <TableRow key={index}>
-            <TableCell>
-              <div className="h-8 w-6 animate-pulse rounded bg-gray-300"></div>
-            </TableCell>
-            <TableCell>
-              <div className="h-8 w-24 animate-pulse rounded bg-gray-300"></div>
-            </TableCell>
-            <TableCell>
-              <div className="h-8 w-16 animate-pulse rounded bg-gray-300"></div>
-            </TableCell>
-            <TableCell>
-              <div className="h-8 w-32 animate-pulse rounded bg-gray-300"></div>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="col-3 grid min-w-full grid-cols-4 gap-3 overflow-x-auto">
+      {Array.from({ length: rows }, (_, index) => (
+        <Card key={index}>
+          <CardHeader className="flex-row items-center">
+            <div className="h-8 w-full animate-pulse rounded bg-gray-300"></div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-8 w-full animate-pulse rounded bg-gray-300"></div>
+          </CardContent>
+          <CardFooter>
+            <div className="h-8 w-full animate-pulse rounded bg-gray-300"></div>
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
   );
 };
 
@@ -83,8 +69,7 @@ const PokemonTable: React.FC = () => {
     queryKey: ["pokemonList"],
     queryFn: fetchPokemons,
     getNextPageParam: (lastPage) => lastPage.next ?? null,
-    initialPageParam: `https://pokeapi.co/api/v2/pokemon`,
-    // staleTime: 5 * 60 * 1000, // Cache data for 5 minutes
+    initialPageParam: undefined,
   });
 
   const fetchMoreData = useCallback(() => {
@@ -107,13 +92,11 @@ const PokemonTable: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [fetchMoreData]);
 
-  const filteredResults = data?.pages.flatMap((page) =>
+  const filteredResults = data.pages.flatMap((page) =>
     page.results.filter((pokemon) =>
       pokemon.name.toLowerCase().includes(search.toLowerCase()),
     ),
   );
-
-  console.log({ data });
 
   const handleClearSearch = () => {
     setSearch("");
@@ -149,32 +132,26 @@ const PokemonTable: React.FC = () => {
             </p>
           </div>
         ) : filteredResults && filteredResults.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table className="min-w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>#</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Image</TableHead>
-                  <TableHead>Types</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredResults.map((pokemon, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{index + 1}.</TableCell>
-                    <TableCell className="capitalize">{pokemon.name}</TableCell>
-                    <PokemonRow url={pokemon.url} />
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <>
+            <div className="col-3 grid grid-cols-4 gap-3 overflow-x-auto">
+              {filteredResults.map((pokemon, index) => (
+                <Card key={index}>
+                  <CardHeader className="flex-row items-center">
+                    <CardTitle>
+                      <span className="font-normal">{index + 1}. </span>
+                      <span className="capitalize">{pokemon.name}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <PokemonCardRow url={pokemon.url} />
+                </Card>
+              ))}
+            </div>
             {isFetchingNextPage && (
-              <div className="flex justify-center py-4">
-                <TableSkeletonLoader rows={1} />
+              <div className="flex min-w-full justify-center py-4">
+                <TableSkeletonLoader rows={5} />
               </div>
             )}
-          </div>
+          </>
         ) : (
           <div className="mt-4 py-40 text-center">
             <p className="text-lg capitalize text-gray-500">

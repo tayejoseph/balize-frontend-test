@@ -1,8 +1,8 @@
 [build]
-  # Build command for Next.js
+  # Build command for Next.js static export
   command = "yarn build"
-  # Let Netlify handle the publish directory for Next.js with plugin
-  publish = ".next"
+  # Publish directory for static export
+  publish = "out"
 
 [build.environment]
   # Node.js version
@@ -10,10 +10,6 @@
   # Optimize build performance
   NODE_OPTIONS = "--max-old-space-size=4096"
   NEXT_TELEMETRY_DISABLED = "1"
-
-# Install Netlify Next.js plugin
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
 
 # Security headers
 [[headers]]
@@ -30,3 +26,9 @@
   for = "/_next/static/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# SPA fallback for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
