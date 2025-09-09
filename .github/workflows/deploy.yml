@@ -24,7 +24,9 @@ jobs:
           cache: "yarn"
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: |
+          yarn install --frozen-lockfile --network-timeout 300000
+          yarn --version
 
       - name: Run ESLint (continue on error for deployment)
         run: yarn lint || echo "Linting failed but continuing with build"
@@ -35,7 +37,11 @@ jobs:
         continue-on-error: true
 
       - name: Build application
-        run: yarn build
+        run: |
+          echo "Starting Next.js build..."
+          yarn build
+          echo "Build completed, checking output..."
+          ls -la out/
         env:
           NODE_ENV: production
 
@@ -98,18 +104,29 @@ jobs:
           name: build-files
           path: out/
 
+      - name: Verify build files exist
+        run: |
+          echo "Checking if build files exist..."
+          ls -la out/
+          if [ ! -f "out/index.html" ]; then
+            echo "Error: No index.html found in out/ directory"
+            exit 1
+          fi
+
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
       - name: Deploy PR Preview
         id: deploy-preview
         run: |
+          echo "Starting Netlify deployment..."
           DEPLOY_URL=$(netlify deploy \
             --dir=out \
             --site=${{ secrets.NETLIFY_SITE_ID_PREVIEW }} \
             --auth=${{ secrets.NETLIFY_AUTH_TOKEN }} \
             --message="PR #${{ github.event.number }} - ${{ github.event.pull_request.title }}" \
             --json | jq -r '.deploy_url')
+          echo "Deployment successful. URL: $DEPLOY_URL"
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
       - name: Comment PR with deploy URL
